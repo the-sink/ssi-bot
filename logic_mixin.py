@@ -14,7 +14,9 @@ from bs4 import BeautifulSoup
 
 from praw.models import (Submission as praw_Submission, Comment as praw_Comment)
 
-# pytesseract.pytesseract.tesseract_cmd = r'<path here>' # Uncomment and insert path to tesseract.exe if it was not added to PATH during installation
+# TODO: 'ocr_tolerance', 'tesseract_path' values in ssi-bot.ini
+
+# pytesseract.pytesseract.tesseract_cmd = r'<path here>' # Uncomment and insert path to tesseract executable if it was not added to PATH during installation
 tesseract_custom_config = '--oem 3 --psm 6'
 ocr_tolerance = 65
 
@@ -340,16 +342,18 @@ class LogicMixin():
 			text = text[text.conf != -1]
 			text.head()
 
-			lines = text.groupby(['page_num', 'block_num', 'par_num', 'line_num'])['text'] \
-												.apply(lambda x: ' '.join(list(x))).tolist()
+			lines = text.groupby(['page_num', 'block_num', 'par_num', 'line_num'])['text'].apply(lambda x: ' '.join(list(x))).tolist()
 			confs = text.groupby(['page_num', 'block_num', 'par_num', 'line_num'])['conf'].mean().tolist()
 
 			for i in range(len(lines)):
 				if lines[i].strip() and confs[i] > ocr_tolerance:
 					final_string += "\n" + lines[i]
+
 		except (urllib.error.HTTPError, ValueError, TypeError) as err:
 			print("OCR attempt failed with error: " + err)
 			return
+
+		# insert result into prompt
 
 		append_location = prompt.find('<|sol|>')
 		if append_location:
