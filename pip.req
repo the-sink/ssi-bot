@@ -3,3 +3,5 @@ peewee
 praw
 simpletransformers
 torch
+opencv-python
+pytesseract
