@@ -3,7 +3,10 @@ import json
 import logging
 import random
 import requests
-import urllib.parse
+import urllib
+import cv2 
+import pytesseract
+import numpy as np
 
 from datetime import datetime
 
@@ -11,6 +14,9 @@ from bs4 import BeautifulSoup
 
 from praw.models import (Submission as praw_Submission, Comment as praw_Comment)
 
+# pytesseract.pytesseract.tesseract_cmd = r'<path here>' # Uncomment and insert path to tesseract.exe if it was not added to PATH during installation
+tesseract_custom_config = '--oem 3 --psm 6'
+ocr_tolerance = 65
 
 class LogicMixin():
 	"""
@@ -67,7 +73,7 @@ class LogicMixin():
 					tagged_text = f"<|soss|><|sot|>{loop_thing.title}<|eot|><|sost|>{loop_thing.selftext}<|eost|>"
 				else:
 					# it's a link submission
-					tagged_text = f"<|sols|><|sot|>{loop_thing.title}<|eot|><|sol|>{loop_thing.selftext}<|eol|>"
+					tagged_text = f"<|sols|><|sot|>{loop_thing.title}<|eot|><|sol|>{loop_thing.url}<|eol|>"
 
 				if len(tagged_text + prefix) > 1500:
 					# If the prefix becomes too long, the model text generation will break
@@ -318,3 +324,34 @@ class LogicMixin():
 
 		logging.info(f"Found {len(return_list)} images, returning top {limit}")
 		return return_list[:limit]
+
+	def append_ocr_result_to_prompt(self, prompt, image_url):
+		try:
+			# download image data and OCR it
+			image_request = urllib.request.urlopen(image_url)
+
+			arr = np.asarray(bytearray(image_request.read()), dtype=np.uint8)
+			img = cv2.imdecode(arr, -1)
+
+			text = pytesseract.image_to_data(img, config=tesseract_custom_config, output_type='data.frame')
+			final_string = ""
+
+			# weed out lines with low confidence (conf < ocr_tolerance)
+			text = text[text.conf != -1]
+			text.head()
+
+			lines = text.groupby(['page_num', 'block_num', 'par_num', 'line_num'])['text'] \
+												.apply(lambda x: ' '.join(list(x))).tolist()
+			confs = text.groupby(['page_num', 'block_num', 'par_num', 'line_num'])['conf'].mean().tolist()
+
+			for i in range(len(lines)):
+				if lines[i].strip() and confs[i] > ocr_tolerance:
+					final_string += "\n" + lines[i]
+		except (urllib.error.HTTPError, ValueError, TypeError) as err:
+			print("OCR attempt failed with error: " + err)
+			return
+
+		append_location = prompt.find('<|sol|>')
+		if append_location:
+			result_prompt = prompt[:append_location] + f"<|sost|>{final_string}<|eost|>" + prompt[append_location:]
+			return result_prompt

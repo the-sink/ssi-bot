@@ -164,7 +164,15 @@ class RedditIO(threading.Thread, LogicMixin):
 					if prompt:
 						# If a prompt was returned, we can go ahead and create the text generation parameters dict
 						text_generation_parameters = self._default_text_generation_parameters.copy()
-						text_generation_parameters['prompt'] = prompt
+
+						# Check if post is an image submission, OCR it if neccesary, and set prompt parameter (OCR should never take longer than 2-3 seconds at most)
+						image_search = re.search(r"<\|sol\|>(.*)<\|eol\|>", prompt)
+						if image_search and len(image_search.group(1)) > 0:
+							image_url = image_search.group(1)
+							ocr_result_prompt = self.append_ocr_result_to_prompt(prompt, image_url)
+							text_generation_parameters['prompt'] = ocr_result_prompt or prompt
+						else:
+							text_generation_parameters['prompt'] = prompt
 
 				# insert it into the database
 				self.insert_praw_thing_into_database(praw_thing, text_generation_parameters)
