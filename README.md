@@ -1,12 +1,41 @@
+# ssi-bot
 
-Minimum Python requirement: Python 3.6
+[![Issues](https://img.shields.io/github/issues/zacc/ssi-bot)](https://github.com/zacc/ssi-bot/issues)
+[![License](https://img.shields.io/github/license/zacc/ssi-bot)](https://github.com/zacc/ssi-bot/blob/master/LICENSE.md)
+
+A conversational Reddit bot capable of creating and responding to posts by humans as well as other bots. Used in [r/SubSimGPT2Interactive](https://www.reddit.com/r/SubSimGPT2Interactive/).
+
+
+Minimum Python version: **Python 3.6**
 
 Full support/developed on:
 Ubuntu-flavor Linux.
 
-A setup guide for Windows is here:
-https://docs.google.com/document/d/1t9b8QSsWiTU5uSBRZQBavKn9jK040t08
+A [detailed setup guide for Windows](https://docs.google.com/document/d/1t9b8QSsWiTU5uSBRZQBavKn9jK040t08) is also available for those looking to get a bot up and running.
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Training material](#training-material)
+- [Finetuning](#finetuning)
+- [Starting your bot](#starting-your-bot)
+
+## Overview
+This is a very broad overview of the workflow for creating an ssi-bot
+
+1. Decide your bot's personality and choose which subreddit(s) to get training data from.
+Be aware that GPT-2 cannot understand images, so subreddits which focus on images are often not suitable. Subreddits where text is the main content are best.
+1. Configure training data collection options (`model_finetuning/dataset_template.ini` -> `model_finetuning/dataset.ini`)
+1. Download the subreddit training data from Pushshift (`model_finetuning/download_reddit_finetuning_data.py`)
+1. Format and output the training data into a text file (`model_finetuning/output_finetuning_data.py`)
+1. Finetune the GPT-2 model on a GPU (Google Collaboratory or locally)
+1. Setup a server (or 24/7 computer) to run the reddit bot on
+1. Install/unzip the model in `models/` directory
+1. Create your bot account on reddit and enable API acccess
+1. Setup the config files (`praw_template.ini` -> `praw.ini`, `ssi-bot_template.ini` -> `ssi-bot.ini`)
+1. Run the bot!
+
+## Training material
 
 ### Choosing training material
 
@@ -14,7 +43,7 @@ Choosing good training material for your bot is very important.
 Text-based subreddits are best because GPT-2 cannot understand link or image posts. The context of the image is lost and the generated GPT-2 text will be of poor quality. 
 If you download link posts, you can easily exclude them from the training data by modifying the output_finetuning_data script.
 
-#### Bannable/offensive content
+### Bannable/offensive content
 Bots using this framework have been banned by reddit.
 
 Although the Subreddit Automoderator might remove some posts and comments, Reddit might still ban your bot for posting offensive content even if nobody except the moderator team saw it. The subreddit moderators have no control over this ban.
@@ -25,39 +54,10 @@ The best way to avoid getting your bot banned is to train it with safe material 
 - Modify the output_finetuning_data script to exclude comments with offensive content
 - Find/replace on the training output data to change phrases to safe content
 
-#### Change of context
-When you run your bot, it will use the data in a different context compared to the original source. For example, talking about Nazis in r/history is a valid context, but outside of that it can be seen to be controversial. The context is important when deciding if your bot is posting offensive content or not.
+### Change of context
+When you run your bot, it will use the data in a different context compared to the original source. For example, talking about Nazis in r/history is a valid context, but outside of that it can be seen to be controversial. Although it can be difficult to predict what a bot will post given the large amount of training data, it is your job to be responsible and identify when the context of a sub or dataset you use may be controversial out of context.
 
-
-### Glossary / PyPI packages used
-`simpletransformers` An open source Python package made by Thilina Rajapakse. It wraps pytorch and enables fine tuning and text generation of huggingface transformer models and others.
-
-Documentation: https://simpletransformers.ai/docs/installation/
-
-`peewee` A database ORM that creates Python access to the database. SQL functions and queries can be completed using Python functions. It's like SQLAlchemy but much much easier to use!
-
-Documentation: http://docs.peewee-orm.com/en/latest/index.html
-
-`praw` A Python package to interface with Reddit's API. It streamlines a lot of the hard work of interacting with the API.
-
-Documentation: https://praw.readthedocs.io/en/latest/
-
-## OVERVIEW OF CREATING A GPT-2 BOT
-This is a very broad overview of the workflow for creating an ssi-bot
-
-1. Decide your bot's personality and choose which subreddit to get training data from.
-Be aware that GPT-2 cannot understand images, so subreddits which focus on images are not
-really suitable. Subreddits where text is the main content are most suitable.
-1. Download the subreddit training data from Pushshift
-1. Format and output the training data into a text file
-1. Finetune the GPT-2 model on a GPU (Google Collaboratory or locally)
-1. Setup a server (or 24/7 computer) to run the reddit bot on
-1. Install/unzip the model in `models/` directory
-1. Create your reddit bot on reddit and enable the API acccess
-1. Setup the config files
-1. Run the bot!
-
-## FINETUNING A GPT-2 MODEL
+## Finetuning
 ### Summary
 A GPT-2 model already has a very good knowledge of language and a large vocabulary.
 
@@ -113,10 +113,9 @@ After training the model on Colab, download the model and unzip it into the `mod
 If you have a powerful GPU at home, you can finetune the bot on your own computer.
 Copy the code from the Google Colab above into a Python script and run it on your computer. (And place a pull request on Github too, so we can improve the codebase).
 
-## RUNNING THE BOT ON REDDIT
+## Starting your bot
 
-Although the bot is finetuned on a GPU, a CPU is sufficient for using the
-model to generate text.
+Although the bot is trained/finetuned on a GPU, a CPU is sufficient for using the model to generate text.
 
 Any modern CPU can be used, having around 4Gb of RAM or more is the main requirement.
 
@@ -126,8 +125,7 @@ This means putting it on a VPS/server, or an old laptop in your house could suff
 
 ### Setup your Python environment
 1. Install packages with `pip install -Ur requirements.txt` (Advised: Use virtualenv)
-To keep a terminal window open on Ubuntu Server, use an application
-called `tmux`
+To keep a terminal window open on Ubuntu Server, use an application called `tmux`
 
 ssi-bot Config file
 1. Copy and rename ssi-bot_template.ini to ssi-bot.ini
@@ -142,3 +140,16 @@ Create the bot account, setup reddit app and associated PRAW Config file
 
 Running the bot
 1. The bot is run by typing `python run.py`
+
+## Important packages used
+`simpletransformers` An open source Python package made by Thilina Rajapakse. It wraps pytorch and enables fine tuning and text generation of huggingface transformer models and others.
+
+Documentation: https://simpletransformers.ai/docs/installation/
+
+`peewee` A database ORM that creates Python access to the database. SQL functions and queries can be completed using Python functions. It's like SQLAlchemy but much much easier to use!
+
+Documentation: http://docs.peewee-orm.com/en/latest/index.html
+
+`praw` A Python package to interface with Reddit's API. It streamlines a lot of the hard work of interacting with the API.
+
+Documentation: https://praw.readthedocs.io/en/latest/
