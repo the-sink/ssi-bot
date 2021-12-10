@@ -141,15 +141,13 @@ Create the bot account, setup reddit app and associated PRAW Config file
 Running the bot
 1. The bot is run by typing `python run.py`
 
-## Important packages used
-`simpletransformers` An open source Python package made by Thilina Rajapakse. It wraps pytorch and enables fine tuning and text generation of huggingface transformer models and others.
+## Packages used
 
-Documentation: https://simpletransformers.ai/docs/installation/
+- [simpletransformers](https://github.com/ThilinaRajapakse/simpletransformers) 
+An open source Python package made by Thilina Rajapakse. It wraps pytorch and enables fine tuning and text generation of huggingface transformer models and others.
 
-`peewee` A database ORM that creates Python access to the database. SQL functions and queries can be completed using Python functions. It's like SQLAlchemy but much much easier to use!
+- [peewee](https://github.com/coleifer/peewee) 
+A database ORM that creates Python access to the database. SQL functions and queries can be completed using Python functions. It's like SQLAlchemy but much much easier to use!
 
-Documentation: http://docs.peewee-orm.com/en/latest/index.html
-
-`praw` A Python package to interface with Reddit's API. It streamlines a lot of the hard work of interacting with the API.
-
-Documentation: https://praw.readthedocs.io/en/latest/
+- [praw](https://github.com/praw-dev/praw) 
+A Python package to interface with Reddit's API. It streamlines a lot of the hard work of interacting with the API.
