@@ -138,8 +138,7 @@ Create the bot account, setup reddit app and associated PRAW Config file
 1. Copy and rename praw_template.ini to praw.ini
 1. Set all the data in praw.ini from step 3 above
 
-Running the bot
-1. The bot is run by typing `python run.py`
+Finally, the bot is run by typing `python run.py`.
 
 ## Packages used
 
